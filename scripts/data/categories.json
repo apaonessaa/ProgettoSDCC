@@ -1,0 +1,48 @@
+[
+  {
+    "name": "Politica",
+    "description": "Segui le ultime notizie e approfondimenti sui principali eventi politici, con analisi dettagliate su ciò che accade in Italia, in Europa e nel mondo.",
+    "sub": [
+      {
+        "name": "Italia",
+        "description": "Notizie in tempo reale e analisi sulle principali vicende politiche italiane, dalle elezioni alle decisioni del governo."
+      },
+      {
+        "name": "Europa",
+        "description": "Gli sviluppi politici più rilevanti in Europa, con focus sulle istituzioni europee e le politiche che influenzano il nostro continente."
+      },
+      {
+        "name": "Mondo",
+        "description": "Gli eventi politici internazionali più significativi, con approfondimenti su come le dinamiche globali plasmano il futuro."
+      }
+    ]
+  },
+  {
+    "name": "Cultura",
+    "description": "Esplora il mondo della cultura, con articoli e recensioni su libri, cinema e altre forme di espressione artistica che raccontano la nostra società.",
+    "sub": [
+      {
+        "name": "Libri",
+        "description": "Scopri le ultime novità editoriali, recensioni di libri e approfondimenti sulle opere più significative di oggi e del passato."
+      },
+      {
+        "name": "Cinema",
+        "description": "Tutte le novità dal mondo del cinema: recensioni, interviste con registi e attori, e uno sguardo alle tendenze e agli eventi più importanti."
+      }
+    ]
+  },
+  {
+    "name": "Tech",
+    "description": "Tutte le ultime innovazioni tecnologiche, con un occhio di riguardo per l'intelligenza artificiale, la sicurezza informatica e le tendenze del futuro digitale.",
+    "sub": [
+      {
+        "name": "Intelligenza Artificiale",
+        "description": "Approfondimenti sull'evoluzione dell'intelligenza artificiale, le sue applicazioni e le implicazioni future per la società e l'economia."
+      },
+      {
+        "name": "Sicurezza Informatica",
+        "description": "Rimani aggiornato sulle ultime minacce e soluzioni in materia di sicurezza digitale, dalla protezione dei dati alle nuove tecnologie di difesa."
+      }
+    ]
+  }
+]

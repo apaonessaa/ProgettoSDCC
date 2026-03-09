@@ -1,0 +1,231 @@
+volumes:
+  data-images:
+  data-server:
+
+networks:
+  client-host:
+    driver: bridge
+  microservices:
+    driver: bridge
+
+services:
+  # === CORE SERVER ===
+  database:
+    container_name: news-database
+    image: mysql:latest
+    volumes:
+      #- data-server:/var/lib/mysql
+      - ./Persist/database/:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWD}
+      - MYSQL_USER=${DB_SPRING_USER}
+      - MYSQL_PASSWORD=${DB_SPRING_PASSWD}
+      - MYSQL_DATABASE=news
+    expose:
+      - 3306
+    networks:
+      microservices:
+        aliases:
+          - news.database
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+
+  server:
+    build: Server
+    container_name: news-server
+    volumes:
+      #- data-images:/home/spring/images
+      - ./Persist/server/:/home/spring/images
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://news.database:3306/news
+      - SPRING_DATASOURCE_USERNAME=${DB_SPRING_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_SPRING_PASSWD}
+    expose:
+      - 8000
+    networks:
+      microservices:
+        aliases:
+          - news.server
+    depends_on:
+      database: { condition: service_healthy } 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/actuator/health"]
+      start_period: 15s
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  # === AI ===
+  classifier:
+    container_name: news-classifier
+    build: 
+      context: AI/Classifier
+      args:
+        - HF_TOKEN=${CLASSIFIER_TOKEN}
+        - HF_API=${CLASSIFIER_API}
+    expose:
+      - 8000
+    networks:
+      microservices:
+        aliases:
+          - news.classifier
+
+  corrector:
+    container_name: news-corrector
+    build: 
+      context: AI/Corrector
+      args:
+        - HF_TOKEN=${CORRECTOR_TOKEN}
+        - HF_API=${CORRECTOR_API}
+        - HF_MODEL=${CORRECTOR_MODEL}
+    expose:
+      - 8000
+    networks:
+      microservices:
+        aliases:
+          - news.corrector
+
+  summarizer:
+    container_name: news-summarizer
+    build: 
+      context: AI/Summarizer
+      args:
+        - HF_TOKEN=${SUMMARIZER_TOKEN}
+        - HF_API=${SUMMARIZER_API}
+        - HF_MODEL=${SUMMARIZER_MODEL}
+    expose:
+      - 8000
+    networks:
+      microservices:
+        aliases:
+          - news.summarizer
+
+  # === AUTHENTICATION ===
+  keycloak:
+    container_name: news-oidc
+    image: quay.io/keycloak/keycloak:latest
+    volumes:
+      - ./Auth/export:/opt/keycloak/data/import/:ro
+    environment:
+      - KC_HTTP_ENABLED=true
+      - KC_HTTP_HOST=0.0.0.0
+      - KC_HTTP_PORT=8000
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_PROXY_HEADERS=xforwarded
+      - KC_IMPORT=/opt/keycloak/data/import/
+      - KC_LOG_LEVEL=info
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+    command:
+      - start-dev
+      - --import-realm
+    ports:
+      - 8000:8000
+    expose:
+      - 8000
+      - 9000
+    networks:
+      microservices:
+        aliases:
+          - news.keycloak
+          - news-keycloak-alias.127.0.0.1.nip.io
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost:9000\r\nConnection: close\r\n\r\n' >&3;cat <&3 | grep -q '\"status\": \"UP\"' && exit 0 || exit 1"]
+      start_period: 30s
+      interval: 20s
+      timeout: 20s
+      retries: 3
+
+  oauth2-proxy:
+    container_name: news-oauth2-proxy
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    environment:
+      - OAUTH2_PROXY_CLIENT_ID=news-keycloak-client
+      - OAUTH2_PROXY_CLIENT_SECRET=${CLIENT_SECRET}
+      - OAUTH2_PROXY_COOKIE_SECRET=${COOKIE_SECRET}
+      - OAUTH2_PROXY_EMAIL_DOMAINS=*
+      - OAUTH2_PROXY_REVERSE_PROXY=true
+      - OAUTH2_PROXY_REDIRECT_URL=http://localhost:8080/oauth2/callback
+      - OAUTH2_PROXY_COOKIE_SECURE=false
+      - OAUTH2_PROXY_SET_AUTHORIZATION_HEADER=true
+      - OAUTH2_PROXY_SET_XAUTHREQUEST=true
+      - OAUTH2_PROXY_WHITELIST_DOMAINS=.localhost:3000,.localhost:8080,.news-keycloak-alias.127.0.0.1.nip.io:8000
+    command:
+      - --http-address=0.0.0.0:4180
+      - --upstream=http://localhost:8080/oauth2/auth
+      - --provider=oidc
+      - --oidc-issuer-url=http://news-keycloak-alias.127.0.0.1.nip.io:8000/realms/news-keycloak-realm
+      - --code-challenge-method=S256
+      - --skip-auth-preflight=true
+      - --cookie-expire=30m
+      - --cookie-refresh=28m
+    depends_on:
+      keycloak: { condition: service_healthy }
+    expose: 
+      - 4180
+    networks:
+      microservices:
+        aliases:
+          - news.oauth2
+
+  # === API GATEWAY ===
+  api-gateway:
+    container_name: news-api-gateway
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8080:80
+    expose:
+      - 80
+    networks:
+      microservices:
+        aliases:
+          - news.gateway
+    depends_on:
+      oauth2-proxy: { condition: service_started }
+      server: { condition: service_healthy }
+      classifier: { condition: service_started }
+      corrector: { condition: service_started }
+      summarizer: { condition: service_started }
+
+  # === WEB APP ===
+  web-app:
+    container_name: news-webapp
+    build:
+      context: Web
+      args:
+        - HOST=localhost:3000
+        - SERVICE=localhost:8080
+    ports:
+      - 3000:80
+    expose:
+      - 80
+    networks:
+      client-host:
+        aliases:
+          - news.web
+    depends_on:
+      api-gateway: { condition: service_started }
+
+  # === Worker ===
+  populate-news:
+    image: alpine:latest
+    container_name: worker-server-init
+    volumes:
+      - ./scripts/init.sh:/init.sh:ro
+      - ./scripts/data/:/data/:ro
+    entrypoint: >
+      /bin/sh -c "
+      apk update && apk add --no-cache curl jq || true;
+      /bin/sh /init.sh news.server:8000
+      "
+    networks:
+      - microservices
+    depends_on:
+      server: { condition: service_healthy }

@@ -1,0 +1,27 @@
+{
+  "realm" : "news-keycloak-realm",
+  "users" : [ {
+    "id" : "b5f319e2-7147-4a3c-8f60-59cc9e5a4dce",
+    "username" : "victor.frankenstein",
+    "firstName" : "Victor",
+    "lastName" : "Frankenstein",
+    "email" : "victor.frankenstein@news.com",
+    "emailVerified" : true,
+    "enabled" : true,
+    "createdTimestamp" : 1772028182685,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "aeaac994-561c-4766-acc3-34cbb570c807",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1772028240380,
+      "secretData" : "{\"value\":\"TZr4K71JsbpGCbwGj/rmvdvEzpR+/8g3XuHnYwSB7Uc=\",\"salt\":\"/FjFaOF59O8Yi2v0/ktVsA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-news-keycloak-realm" ],
+    "notBefore" : 1772591285,
+    "groups" : [ ]
+  } ]
+}
