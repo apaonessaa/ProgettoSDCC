@@ -22,21 +22,21 @@ Il file **.env** contiene le variabili d'ambiente utilizzate per la costruzione 
 
 Le variabili d'ambiente da specificare nel file:
 
-•	DB_ROOT_PASSWD="***"
-•	DB_SPRING_USER="spring"
-•	DB_SPRING_PASSWD="***"
-•	COOKIE_SECRET="***" 32 Byte
+- DB_ROOT_PASSWD="***"
+- DB_SPRING_USER="spring"
+- DB_SPRING_PASSWD="***"
+- COOKIE_SECRET="***" 32 Byte
 
 Per l'elaborazione del testo si usano API Hugging Face i cui parametri di accesso sono specificati con le seguenti variabili d'ambiente:
 
-•	CLASSIFIER_API="***"
-•	CLASSIFIER_TOKEN="hf_***"
-•	CORRECTOR_API="***"
-•	CORRECTOR_MODEL="***"
-•	CORRECTOR_TOKEN="hf_***"
-•	SUMMARIZER_API="***"
-•	SUMMARIZER_MODEL="***"
-•	SUMMARIZER_TOKEN="hf_***"
+- CLASSIFIER_API="***"
+- CLASSIFIER_TOKEN="hf_***"
+- CORRECTOR_API="***"
+- CORRECTOR_MODEL="***"
+- CORRECTOR_TOKEN="hf_***"
+- SUMMARIZER_API="***"
+- SUMMARIZER_MODEL="***"
+- SUMMARIZER_TOKEN="hf_***"
 
 ## Demo
 
