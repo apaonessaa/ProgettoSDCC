@@ -2,6 +2,12 @@
 
 Sistema per la visualizzazione e creazioni di articoli. Ad ogni articolo viene associato un immagine, una categoria e almeno una sottocategoria. 
 
+Come supporto per la gestione del contenuto degli articoli, vengono forniti strumenti di Intelligenza Artificiale per:
+
+1. La generazione di un sommario;
+2. La classificazione di un articolo con categoria e sottocategoria;
+3. La correzione grammaticale di un articolo;
+
 ## Architettura e componenti
 
 Il progetto è stato sviluppato seguendo il paradigma della progettazione a microservizi con i container Docker.
